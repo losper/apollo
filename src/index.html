@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="var/css/base.css" />
     <link rel="stylesheet" href="var/css/buttons.css" />
     <link rel="stylesheet" href="var/css/grids.css" />
+    <link rel="stylesheet" href="var/css/menus.css" />
     <!--<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css">
     <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>-->
@@ -68,11 +69,23 @@
 </head>
 <body>
     <div class="result-list">
+        <div class="pure-menu pure-menu-horizontal">
+            <a href="#" class="pure-menu-heading pure-menu-link">Apollo</a>
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="#" class="pure-menu-link">已完成</a></li>
+                <li class="pure-menu-item"><a href="#" class="pure-menu-link">排队中</a></li>
+                <li class="pure-menu-item"><a href="#" class="pure-menu-link">稳定版本</a></li>
+                <li class="pure-menu-item"><a href="#" class="pure-menu-link">开发版本</a></li>
+                <li class="pure-menu-item"><a href="#" class="pure-menu-link">管理</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="result-list">
         <div id="list" >
             <input type="text" placeholder="请输入要搜索的内容" ref="sval">
             <button type="button" class="button-success pure-button" v-on:click="test1">搜索</button>
-            <button type="button" class="button-success pure-button" v-on:click="showPass">显示通过的测试</button>
-            <button type="button" class="button-success pure-button" v-on:click="showFail">显示未通过的测试</button>
+            <button type="button" class="button-success pure-button" v-on:click="showPass">显示编译成功的任务</button>
+            <button type="button" class="button-success pure-button" v-on:click="showFail">显示未编译成功的任务</button>
             <ul>
                 <li class="list_item" v-for="item in items">
                 <div class="list_info">

@@ -48,7 +48,7 @@ exports.filter=function (req, res) {
         pathname+="index.html";
     }
 	
-	
+	console.log(pathname);
 	if(fs.existsSync(pathname)){
 		res.writeHead(200, {"Content-Type": funGetContentType(pathname)});
 		//创建只读流用于返回 
