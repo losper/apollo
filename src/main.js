@@ -15,8 +15,9 @@ http.createServer(function (req, res) {
   
   req.on('end', function () {
     // 设置响应头部信息及编码
+	var params = url.parse(req.url, true).query;
+
 	if(body==""){
-		var params = url.parse(req.url, true).query;
 		var ext=url.parse(req.url).pathname;
 		console.log(ext);
 		if(ext=="/log"){
@@ -25,6 +26,7 @@ http.createServer(function (req, res) {
 			reshandler.filter(req,res,ext);
 		}
 	}else{
+		console.log(params.X-gogs-Event);
 		res.writeHead(200, {'Content-Type': 'text/html; charset=utf8'});
 		var json  = JSON.parse(body);
 		
