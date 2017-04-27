@@ -1,5 +1,4 @@
 var http = require("http"),
-    url  = require("url"),
     path = require("path"),
     fs   = require("fs");
 	
@@ -39,8 +38,8 @@ var funGetContentType = function (filePath) {
     //返回内容类型字符串 
     return contentType;
 }
-exports.filter=function (req, res) {
-    var pathname=__dirname+url.parse(req.url).pathname;
+exports.filter=function (req, res,ext) {
+    var pathname=__dirname+ext;
     if (path.extname(pathname)=="") {
         pathname+="/";
     }
@@ -49,14 +48,14 @@ exports.filter=function (req, res) {
     }
 	
 	console.log(pathname);
-	if(fs.existsSync(pathname)){
-		res.writeHead(200, {"Content-Type": funGetContentType(pathname)});
-		//创建只读流用于返回 
-		res.end(fs.readFileSync(pathname));
-	}else{
-		res.writeHead(404, {"Content-Type": "text/html"});
-		res.end("<h1>404 Not Found</h1>");
-		console.log("404 not found");
-		return ;
-	} 
+	fs.readFile(pathname, function(err, data){
+		if (err) {
+			res.writeHead(404, {"Content-Type": "text/html"});
+			res.end("<h1>404 Not Found</h1>");
+			console.log(err);
+		} else {
+			res.writeHead(200, {"Content-Type": funGetContentType(pathname)});
+			res.end(data);
+		}
+	});
 }

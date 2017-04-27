@@ -1,0 +1,22 @@
+# Compiled Object files
+/*
+*
+!doc/
+!src/
+!test/
+!*.c
+!*.cpp
+!*.hpp
+!*.h
+!*.js
+!*.css
+!*.yml
+!*.def
+!*.md
+!*.org
+!*CMakeLists.txt
+!*.bat
+!*.sh
+!*.png
+!.gitignore
+!/cmake/*.cmake

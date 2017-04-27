@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
+    <script type="text/javascript" src="var/axios.js"></script>
     <script type="text/javascript" src="var/vue.js"></script>
-    <script type="text/javascript" src="result.json"></script>
     <link rel="stylesheet" href="var/css/base.css" />
     <link rel="stylesheet" href="var/css/buttons.css" />
     <link rel="stylesheet" href="var/css/grids.css" />
@@ -13,30 +13,60 @@
     <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>-->
     <style scoped>
-        .result-list {
+		.passed{
+			border-left: 6px solid rgb(28, 184, 65);
+		}
+		.failed{
+			border-left: 6px solid rgb(255, 0, 0);
+		}
+		.wait{
+			border-left: 6px solid rgb(66, 184, 221);
+		}
+		.menu-list {
             position: relative;
             width: 1140px;
             margin: 15px auto;
             box-shadow: 0 0 3px 2px #dfdfdf;
         }
+        .result-list {
+            position: relative;
+            width: 1140px;
+            margin: 15px auto;
+			border-left: 1px solid #ddd;
+        }
         .list_item{
             list-style-type:none;
-            border-top: 1px solid #eee;
+            padding-top: 1.6em;
         }
         .list_info {
-            width:800px;
+			border-bottom: 1px solid #ddd;
+			border-top: 1px solid #ddd;
         }
         .label_pass {
-            background-color: rgb(28, 184, 65);
-            color: #fff;
+            padding-left: .4em;
+            color: rgb(28, 184, 65);
             display: inline-block;
-           
+            padding: 3px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1;
             border-radius: 2px;
             box-shadow: inset 0 -1px 0 rgba(0,0,0,0.12);
         }
         .label_fail {
-            background-color:rgb(255, 0, 0);
-            color: #fff;
+		    padding-left: .4em;
+            color: rgb(255, 0, 0);
+            display: inline-block;
+            padding: 3px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1;
+            border-radius: 2px;
+            box-shadow: inset 0 -1px 0 rgba(0,0,0,0.12);
+        }
+		.label_wait {
+		    padding-left: .4em;
+            color: rgb(66, 184, 221);
             display: inline-block;
             padding: 3px 4px;
             font-size: 12px;
@@ -65,47 +95,127 @@
         .button-secondary {
             background: rgb(66, 184, 221); /* this is a light blue */
         }
+		.color1{
+			color: rgb(142, 136, 136);
+		}
+		.color2{
+			color: rgb(0, 120, 231);
+		}
+		.app_list_div{
+			height: 32px;
+			line-height: 30px;
+			border-bottom: 1px solid #e5e5e5;
+			word-wrap: break-word;
+			display: block;
+		}
+		.supports{
+			text-align: center;
+		}
+		.space{
+			margin-left: 20px;
+		}
+		.downloadApp{
+			color: #a9a9a9;
+			border: 1px solid #e5e5e5;
+		}
+		.downloadButton{
+			margin-top: 30px;
+			margin-bottom: 30px;
+			position: relative;
+		}
+		.page255{
+			background-image: url(var/img/index.png);
+			background-repeat:no-repeat;
+			background-position:center;
+			height: 630px;
+		}
+		.page0-0{
+			background-image: url(var/img/version404.png);
+			background-repeat:no-repeat;
+			background-position:center;
+			height: 630px;
+		}
     </style>
 </head>
 <body>
-    <div class="result-list">
-        <div class="pure-menu pure-menu-horizontal">
+
+	<!-- component template -->
+	<script type="text/x-template" id="list-template">
+		<div id="list" >
+			<ul v-if="page==1">
+				<li class="list_item " v-for="item in items">
+				<div class="list_info wait" v-if="item.status==0">
+					<h3>
+					<span class="label_wait" >
+					等待编译
+					</span>
+					<span class="color1">{{ item.project }}<span>
+					</h3>
+					<p><span class="color2">提交消息:</span><span class="color1">{{item.message}}</span></p>
+				</div>
+				<div class="list_info failed" v-if="item.status==1">
+					<h3>
+					<span class="label_fail" >
+					编译失败
+					</span>
+					<span class="color1">{{ item.project }}<span>
+					</h3>
+					<p><span class="color2">提交消息:</span><span class="color1">{{item.message}}</span></p>
+					<span class="space"></span><a v-bind:href="'log?id='+item.id" class="pure-menu-link">编译日志</a>
+				</div>
+				<div class="list_info passed" v-if="item.status==2">
+					<h3>
+					<span class="label_pass" >
+					编译成功
+					</span>
+					<span class="color1">{{ item.project }}<span>
+					</h3>
+					<p><span class="color2">提交消息:</span><span class="color1">{{item.message}}</span></p>
+					<span class="space"></span><a v-bind:href="'log?id='+item.id" class="pure-menu-link">编译日志</a>
+				</div>
+				</li>
+			</ul>
+			<div class="page255" v-else-if="page==255">
+				
+			</div>
+			<div class="downloadApp" v-else-if="page==0">
+			
+				<div class="app_list_div">
+				<span class="space"></span>当前版本
+				</div>
+				<div class="supports" v-for="item in items">
+					<div class="downloadButton">
+						<button class="button-secondary pure-button" v-on:click="downloadpc(item.apppath)">下载PC版本</button>
+						<button class="button-secondary pure-button">帮助</button>
+					</div>
+					<p>作者：{{item.username}}<span class="space"></span>版本：{{item.version}}<span class="space"></span>大小：{{item.size}}</p>								
+					<p>如果您在使用过程中遇到问题，可口头告诉{{item.username}}</p>
+				</div>
+				<div class="supports" v-if="items.length==0">
+					<div class="page0-0"></div>
+				</div>
+			</div>
+        </div>
+		
+	</script>
+	
+    <div class="menu-list">
+        <div id="menu" class="pure-menu pure-menu-horizontal">
             <a href="#" class="pure-menu-heading pure-menu-link">Apollo</a>
             <ul class="pure-menu-list">
-                <li class="pure-menu-item"><a href="#" class="pure-menu-link">已完成</a></li>
-                <li class="pure-menu-item"><a href="#" class="pure-menu-link">排队中</a></li>
-                <li class="pure-menu-item"><a href="#" class="pure-menu-link">稳定版本</a></li>
-                <li class="pure-menu-item"><a href="#" class="pure-menu-link">开发版本</a></li>
-                <li class="pure-menu-item"><a href="#" class="pure-menu-link">管理</a></li>
+				<li class="pure-menu-item" v-for="item in items"><a href="#" class="pure-menu-link" v-on:click="get(item.idx)">{{item.name}}</a></li>
             </ul>
         </div>
     </div>
-    <div class="result-list">
-        <div id="list" >
-            <input type="text" placeholder="请输入要搜索的内容" ref="sval">
-            <button type="button" class="button-success pure-button" v-on:click="test1">搜索</button>
-            <button type="button" class="button-success pure-button" v-on:click="showPass">显示编译成功的任务</button>
-            <button type="button" class="button-success pure-button" v-on:click="showFail">显示未编译成功的任务</button>
-            <ul>
-                <li class="list_item" v-for="item in items">
-                <div class="list_info">
-                    <h3>
-                    <span class="label_fail" v-if="item.status==0">fails</span>
-                    <span class="label_pass" v-if="item.status==1">pass</span>
-                    {{ item.name }}
-                    </h3>
-                    <p>位置:{{item.file}}({{item.line}})</p>
-                    <p></p>
-                    <pre><code class="cpp">{{item.msg}}</code></pre>
-                </div>
-                </li>
-            </ul>
-            
-        </div>   
-    </div>
-    
+	<!-- demo root element -->
+	<div id="demo" class="result-list">
+		<!-- <form id="search"> -->
+			<!-- Search <input name="query" v-model="searchQuery"> -->
+		<!-- </form> -->
+		<demo-grid :items="items" :page="page"></demo-grid>
+	</div>   
     <script type="text/javascript">
-        var app = new Vue({
+        /*var app = new Vue({
             el: '#list',
             data: {
                 items: result,
@@ -134,7 +244,95 @@
                     })
                 }
             }
-        })
+        })*/
+		
+		// register the grid component
+		Vue.component('demo-grid', {
+			template: '#list-template',
+			props: {
+				items: Array,
+				page: Number,
+			},
+			methods: {
+				downloadpc: function (path) {
+					location.href=path;
+				},
+			}
+		})
+		var menu = new Vue({
+		  el: '#menu',
+		  data:{items: [{idx:0,name:"当前版本"},{idx:1,name:"编译历史"},{idx:2,name:"合并请求"},{idx:3,name:"管理"}]},
+		  methods: {
+			get: function (message) {
+				switch(message){
+					case 0:
+					{
+						
+						axios.post('', {
+							object_kind: 'currentVersion',
+						})
+						.then(function (response) {
+							demo.items=response.data;
+							demo.page=0;
+						})
+						.catch(function (error) {
+							console.log(error);
+						});
+					}
+					break;
+					case 1:
+					{
+						demo.page=1;
+						axios.post('', {
+							object_kind: 'history',
+						})
+						.then(function (response) {
+							demo.items=response.data;
+							demo.page=1;
+						})
+						.catch(function (error) {
+							console.log(error);
+						});
+					}
+					break;
+					case 2:
+					{
+						axios.post('', {
+							object_kind: 'megre',
+						})
+						.then(function (response) {
+							demo.items=response.data;
+						})
+						.catch(function (error) {
+							console.log(error);
+						});
+					}break;
+					case 3:
+					{
+						axios.post('', {
+							object_kind: 'manager',
+						})
+						.then(function (response) {
+							demo.items=response.data;
+						})
+						.catch(function (error) {
+							console.log(error);
+						});
+					}break;
+					default:
+					break;
+				}
+			},
+		  }
+		})
+		var demo = new Vue({
+		  el: '#demo',
+		  data:{
+			items: [{url:"",user_name:"",build:1,message:""}],
+			page:255,
+		  },
+		})
+		
     </script>
 </body>
 </html>
