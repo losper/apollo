@@ -3,4 +3,4 @@ mkdir tmp
 cd tmp
 git clone %1 %2
 cd %2
-buildmsvc.bat
+buildmsvc.bat %3 %4

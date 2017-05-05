@@ -1,4 +1,8 @@
 var sqlite3 = require('sqlite3').verbose();
+var fs = require("fs");
+var iconv = require('iconv-lite');
+var encoding = 'cp936';
+var binaryEncoding = 'binary';
 var db;
 var jobstatus=0;
 function buildQueue(){
@@ -23,18 +27,19 @@ function buildQueue(){
 function run_cmd(cmd,id, args) {
 	console.log("run_cmd:"+id);
 	var callfile = require('child_process');
-	var child = callfile.execFile(cmd,args,null,function (err, stdout, stderr) {	  
-		console.log("execfile:",id);
+	var child = callfile.execFile(cmd,args,{ encoding: binaryEncoding,timeout:1200000 },function (err, stdout,stderr) {	  
 		if(err){
-			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 1, stderr, id);
+			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 1, stderr+stdout, id);
 		}else{
 			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 2, stdout, id);
-			 var apppath="../../public/"+args[2]+id+".7z";
-			 fs.rename("tmp.7z",apppath,function(err){
+			 var apppath="public/"+args[1]+id+".7z";
+			 var tmp="tmp/"+args[1]+"/tmp.7z"
+			 fs.rename(tmp,apppath,function(err){
 				 if(err){
 					 console.log("rename error:",err);
-				 }
-				 db.run("UPDATE queue SET apppath = ? WHERE id = ?", apppath, id);
+				 }else{
+					db.run("UPDATE queue SET apppath = ? WHERE id = ?", apppath, id);
+				 }		 
 			 });
 		}
 		jobstatus=0;
@@ -49,7 +54,7 @@ function createTable(err){
 		console.log("error",err);
 		return ;
 	}
-    db.run("CREATE TABLE queue (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT,message TEXT, username TEXT, project TEXT, status INT, version TEXT, log TEXT,apppath TEXT)",function(err){
+    db.run("CREATE TABLE queue (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT,message TEXT, username TEXT, project TEXT, status INT, version TEXT, log TEXT,apppath TEXT,root TEXT,rooturl TEXT)",function(err){
 		if(err){
 			if(err.errno==1){
 				buildQueue();
@@ -64,9 +69,9 @@ function createTable(err){
 exports.setup=function(path){
 	db=new sqlite3.Database(path,createTable);
 };
-exports.push=function(url,message,username,project){
-	console.log("insertRows ",url,message,username,project);
-    db.run("INSERT INTO queue VALUES (?,?,?,?,?,?,?,?,?)",null,url,message,username,project,0,"","","");
+exports.push=function(url,message,username,project,root,rooturl){
+	console.log("insertRows ",url,message,username,project,root,rooturl);
+    db.run("INSERT INTO queue VALUES (?,?,?,?,?,?,?,?,?,?,?)",null,url,message,username,project,0,"","","",root,rooturl);
 	buildQueue();
 };
 exports.buildQueue=buildQueue;

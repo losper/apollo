@@ -33,8 +33,8 @@ var funGetContentType = function (filePath) {
             break;
         default:
             contentType = "application/octet-stream";
+			break;
     }
-    
     //返回内容类型字符串 
     return contentType;
 }
@@ -48,6 +48,19 @@ exports.filter=function (req, res,ext) {
     }
 	
 	console.log(pathname);
+	fs.readFile(pathname, function(err, data){
+		if (err) {
+			res.writeHead(404, {"Content-Type": "text/html"});
+			res.end("<h1>404 Not Found</h1>");
+			console.log(err);
+		} else {
+			res.writeHead(200, {"Content-Type": funGetContentType(pathname)});
+			res.end(data);
+		}
+	});
+}
+exports.download=function (req, res,pathname) {
+    console.log(pathname);
 	fs.readFile(pathname, function(err, data){
 		if (err) {
 			res.writeHead(404, {"Content-Type": "text/html"});

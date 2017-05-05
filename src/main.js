@@ -15,18 +15,26 @@ http.createServer(function (req, res) {
   
   req.on('end', function () {
     // 设置响应头部信息及编码
-	
-	if(body==""){
-		var params = url.parse(req.url, true).query;
-		var ext=url.parse(req.url).pathname;
-		console.log(ext);
-		if(ext=="/log"){
+	var params = url.parse(req.url, true).query;
+	var ext=url.parse(req.url).pathname;
+	switch(ext){
+		case "/log":
 			db.getlog(res,params.id);
-		}else{
-			reshandler.filter(req,res,ext);
-		}
-	}else{
-		webhooks.handle(req,res,body,db);
+		break;
+		case "/build":
+			if (typeof(params.root) == "undefined" || typeof(params.url) == "undefined") { 
+				webhooks.handle(req,res,body,db,"","");
+			}else{
+				webhooks.handle(req,res,body,db,params.root,params.url);
+			}
+		break;
+		default:
+			if (typeof(params.action) == "undefined") { 
+				reshandler.filter(req,res,ext);
+			}else{
+				reshandler.download(req,res,process.cwd()+ext);
+			}
+		break;
 	}
   });
 }).listen(8008);
