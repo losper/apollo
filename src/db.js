@@ -29,9 +29,9 @@ function run_cmd(cmd,id, args) {
 	var callfile = require('child_process');
 	var child = callfile.execFile(cmd,args,{ encoding: binaryEncoding,timeout:1200000 },function (err, stdout,stderr) {	  
 		if(err){
-			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 1, stderr+stdout, id);
+			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 1, iconv.decode(new Buffer(stderr+stdout, binaryEncoding), encoding), id);
 		}else{
-			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 2, stdout, id);
+			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 2, iconv.decode(new Buffer(stderr+stdout, binaryEncoding), encoding), id);
 			 var apppath="public/"+args[1]+id+".7z";
 			 var tmp="tmp/"+args[1]+"/tmp.7z"
 			 fs.rename(tmp,apppath,function(err){

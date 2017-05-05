@@ -1,9 +1,5 @@
-echo %1
-cd tmp
-cd %2/aeolus
-call :build
-echo "aha?"
-goto :eof
+cd tmp/poseidon
 :build
-echo "??"
-exit 1
+pscp -pw yangchao buildimx6q.sh yangchao@192.168.3.248:/home/yangchao/buildimx6q.sh
+plink -pw yangchao yangchao@192.168.3.248 "bash ~/buildimx6q.sh"
+pscp -pw yangchao yangchao@192.168.3.248:/home/yangchao/do.sh do.sh
