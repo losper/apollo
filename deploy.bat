@@ -3,5 +3,7 @@ mkdir tmp
 cd tmp
 git clone %1 %2
 cd %2
-buildmsvc.bat %3 %4
-buildimx6q.bat
+call buildmsvc.bat %3 %4
+echo "build imx6q!!!"
+call buildimx6q.bat
+exit 0

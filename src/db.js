@@ -25,29 +25,42 @@ function buildQueue(){
 	});
 };
 function run_cmd(cmd,id, args) {
-	console.log("run_cmd:"+id);
 	var callfile = require('child_process');
-	var child = callfile.execFile(cmd,args,{ encoding: binaryEncoding,timeout:1200000 },function (err, stdout,stderr) {	  
-		if(err){
-			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 1, iconv.decode(new Buffer(stderr+stdout, binaryEncoding), encoding), id);
-		}else{
-			 db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 2, iconv.decode(new Buffer(stderr+stdout, binaryEncoding), encoding), id);
-			 var apppath="public/"+args[1]+id+".7z";
-			 var tmp="tmp/"+args[1]+"/tmp.7z"
-			 fs.rename(tmp,apppath,function(err){
+	var cmderr="",cmdout="",runerr="";
+	var child = callfile.spawn(cmd,args,{ encoding: binaryEncoding,timeout:1200000 });
+	// child.on("close",function(data){
+		// console.log("close:",data);
+		// buildQueue();
+	// });
+	child.stdout.on("data",function(data){
+		cmdout+=data;
+	});
+	child.stderr.on("data",function(data){
+		cmderr+=data;
+	});
+	child.on("error",function(err){
+		console.log("execfile error:",err);
+		runerr=err;
+	});
+	child.on("close",function(code,signal){
+		console.log("execfile close:",code,signal);
+		if(code==0){
+			db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 2, iconv.decode(new Buffer(cmderr+cmdout, binaryEncoding), encoding), id);
+			var apppath="public/"+args[1]+id+".7z";
+			var tmp="tmp/"+args[1]+"/tmp.7z"
+			fs.rename(tmp,apppath,function(err){
 				 if(err){
 					 console.log("rename error:",err);
 				 }else{
 					db.run("UPDATE queue SET apppath = ? WHERE id = ?", apppath, id);
 				 }		 
 			 });
+		}else{
+			db.run("UPDATE queue SET status = ?, log=? WHERE id = ?", 1, iconv.decode(new Buffer("[err]"+runerr+"[stderr]"+cmderr+"[stdout]"+cmdout, binaryEncoding), encoding), id);
 		}
 		jobstatus=0;
-	});
-	child.on("close",function(data){
-		console.log("close:",data);
 		buildQueue();
-	});
+	})
 }
 function createTable(err){
 	if(err){
